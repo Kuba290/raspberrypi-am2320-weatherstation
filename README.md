@@ -10,7 +10,7 @@ Raspberry Pi 3B+ &amp; AM2320 weather station
 ## How it looks
 <img width="885" height="806" alt="obraz" src="https://github.com/user-attachments/assets/a675c2d3-dc09-4b53-b21a-8c3c7cc2e8c7" />
 
-### Data (with polish subtitles)
+### Website (with polish subtitles)
 - measure time (czas pomiaru) - last measure time from sensor, which is currently visible
 - current temperature (aktualna temperatura) - in Celsius scale
 - Heat Index - calculated above 26 degree C (80F), based on [NOAA formulas](https://en.wikipedia.org/wiki/Heat_index#Formula)
