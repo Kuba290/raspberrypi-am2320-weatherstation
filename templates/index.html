@@ -9,11 +9,48 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.1/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
     <style>
+      :root {
+        --bg-body: #f4f4f9;
+        --bg-surface: #ffffff;
+        --text-h1: #333333;
+        --text-h2: #555555;
+        --text-muted: #777777;
+        --border-color: transparent;
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        --grid: #d5d4d4;
+
+        --val-dry: #ff6384;
+        --val-hi: #d7940d;
+        --val-hum: #36a2eb;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-body: #121212;
+          --bg-surface: #1e1e1e;
+          --text-h1: #f3f4f6;
+          --text-h2: #d1d5db;
+          --text-muted: #9ca3af;
+          --border-color: #2e2e2e;
+          --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+          --grid: #5d5d5d;
+
+          --val-dry: #ff7b98;
+          --val-hi: #f5b027;
+          --val-hum: #54b4f8;
+        }
+      }
+
       body {
         font-family: Arial, sans-serif;
         margin: 20px;
-        background-color: #f4f4f9;
+        background-color: var(--bg-body);
+        color: var(--text-h1);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
       }
+
       .container {
         margin: 0 auto;
       }
@@ -23,68 +60,84 @@
         gap: 20px;
         margin-bottom: 20px;
       }
+
       .card {
         flex: 1;
-        background: white;
+        background: var(--bg-surface);
         padding: 20px;
         border-radius: 8px;
         text-align: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
       }
+
       .card h3 {
         margin: 0;
-        color: #777;
+        color: var(--text-muted);
         font-size: 0.9em;
       }
+
       .card .value {
         font-size: 2.2em;
         font-weight: bold;
         margin-top: 10px;
       }
+
       .card.time .value {
-        color: #777;
+        color: var(--text-muted);
       }
+
       .card.temp.dry .value {
-        color: #ff6384;
+        color: var(--val-dry);
       }
+
       .card.temp.hi .value {
-        color: #d7940d;
+        color: var(--val-hi);
       }
+
       .card.hum .value {
-        color: #36a2eb;
+        color: var(--val-hum);
       }
 
       .controls {
-        background: white;
+        background: var(--bg-surface);
         padding: 15px;
         border-radius: 8px;
         margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
       }
 
       .chart-card {
-        background: white;
+        background: var(--bg-surface);
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
       }
+
       h1 {
         text-align: center;
-        color: #333;
+        color: var(--text-h1);
       }
+
       h2 {
         margin-top: 0;
-        color: #555;
+        color: var(--text-h2);
         text-align: center;
       }
 
       select {
         padding: 5px;
         font-size: 1em;
+        background-color: var(--bg-surface);
+        color: var(--text-h1);
+        border: 1px solid var(--text-muted);
+        border-radius: 4px;
       }
     </style>
   </head>
@@ -134,9 +187,13 @@
 
     <script>
       let combinedChart;
+      const getCSSVar = (varName) => getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 
       const timeScaleConfig = {
         type: "time",
+        ticks: {
+          color: getCSSVar('--text-h1'),
+        },
         time: {
           parser: "yyyy-MM-dd HH:mm:ss",
           tooltipFormat: "yyyy-MM-dd HH:mm:ss",
@@ -151,7 +208,11 @@
         title: {
           display: true,
           text: "Czas",
+          color: getCSSVar('--text-h1'),
         },
+        grid: {
+          color: getCSSVar('--grid')
+        }
       };
 
       function getStartTime(hours) {
@@ -216,6 +277,13 @@
             ],
           },
           options: {
+            plugins: {
+              legend: {
+                labels: {
+                  color: getCSSVar('--text-h1'),
+                }
+              }
+            },
             responsive: true,
             interaction: {
               mode: "index",
@@ -224,21 +292,32 @@
             scales: {
               x: timeScaleConfig,
               yTemp: {
+                ticks: {
+                  color: getCSSVar('--text-h1'),
+                },
                 type: "linear",
                 display: true,
                 position: "left",
                 title: {
                   display: true,
                   text: "temperatura [°C]",
+                  color: getCSSVar('--text-h1'),
                 },
+                grid: {
+                  color: getCSSVar('--grid'),
+                }
               },
               yHum: {
+                ticks: {
+                  color: getCSSVar('--text-h1'),
+                },
                 type: "linear",
                 display: true,
                 position: "right",
                 title: {
                   display: true,
                   text: "wilgotność [%]",
+                  color: getCSSVar('--text-h1'),
                 },
                 grid: {
                   drawOnChartArea: false,
