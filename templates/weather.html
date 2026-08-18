@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Prognoza pogody</title>
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='icon.png') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg-body: #f4f4f9;
+        --bg-surface: #ffffff;
+        --text-h1: #333333;
+        --text-h2: #555555;
+        --text-muted: #777777;
+        --border-color: transparent;
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        --grid: #d5d4d4;
+
+        --val-rain: #2a7db5;
+        --val-hum: #36a2eb;
+        --val-temp: #ff6384;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg-body: #121212;
+          --bg-surface: #1e1e1e;
+          --text-h1: #f3f4f6;
+          --text-h2: #d1d5db;
+          --text-muted: #9ca3af;
+          --border-color: #2e2e2e;
+          --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+          --grid: #5d5d5d;
+
+          --val-rain: #4798d1;
+          --val-hum: #54b4f8;
+          --val-temp: #ff7b98;
+        }
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: var(--bg-body);
+        color: var(--text-h1);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+
+      .container {
+        margin: 0 auto;
+      }
+
+      .cards-grid {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .links-grid {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .days-grid {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .day {
+        flex: 1;
+        background: var(--bg-surface);
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+      }
+
+      .day-info {
+        font-size: 1em;
+        color: var(--text-h1);
+      }
+
+      .weather-info-icononly {
+        font-size: 3em;
+      }
+
+      .link {
+        flex: 1;
+        background: var(--bg-surface);
+        padding: 5px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+      }
+
+      .link h2 {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 1.5em;
+        text-decoration: none;
+      }
+
+      .card {
+        flex: 1;
+        background: var(--bg-surface);
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+      }
+
+      .card h3 {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9em;
+      }
+
+      a {
+        text-decoration: none;
+        color: var(--text-h1);
+      }
+
+      .card .value {
+        font-size: 2.2em;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .card.temp .value {
+        color: var(--val-temp);
+      }
+      .card.hum .value {
+        color: var(--val-hum);
+      }
+      .card.rain .value {
+        color: var(--val-rain);
+      }
+      .card.weather .value {
+        color: var(--text-h1);
+        font-size: 2.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .chart-card, .days-grid {
+        background: var(--bg-surface);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+      }
+
+      h1 {
+        text-align: center;
+        color: var(--text-h1);
+      }
+
+      h2 {
+        margin-top: 0;
+        color: var(--text-h2);
+        text-align: center;
+      }
+
+      #hourtable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      #daytable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      th {
+        color: var(--text-muted);
+        font-weight: 600;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .weather-icon-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="links-grid">
+        <div class="link">
+          <h2><a href="{{ url_for('index') }}">Stacja pogodowa</a></h2>
+        </div>
+        <div class="link">
+          <h2><a href="{{ url_for('weather') }}">Prognoza pogody</a></h2>
+        </div>
+      </div>
+
+      <h2>Obecne warunki</h2>
+
+      <div class="cards-grid">
+        <div class="card temp">
+          <h3><i class="bi bi-thermometer-half"></i> TEMPERATURA</h3>
+          <div class="value">{{ current.temp }}°C</div>
+        </div>
+        <div class="card hum">
+          <h3><i class="bi bi-droplet"></i> WILGOTNOŚĆ</h3>
+          <div class="value">{{ current.humidity }} %</div>
+        </div>
+        <div class="card rain">
+          <h3><i class="bi bi-cloud-rain"></i> OPADY</h3>
+          <div class="value">{{ current.precipitation }} mm</div>
+        </div>
+        <div class="card weather">
+          <h3><i class="bi bi-cloud-sun"></i> POGODA</h3>
+          <div class="value">
+            <i id="current-icon" class="bi"></i>
+            <span id="current-weather-text">{{ current.weather_code }}</span>
+          </div>
+        </div>
+      </div>
+
+      <h2>Prognoza dzienna</h2>
+      <div class="days-grid">
+        
+        {% for item in daily %}
+        <div class="day">
+          <table id="daytable">
+            <thead>
+              <tr>
+                <th><i class="bi bi-calendar-date"></i></th>
+                <th><span class="day-info">{{ item.time }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="2"><span class="weather-info-icononly" data-code="{{ item.weather_code }}">{{ item.weather_code }}</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-thermometer-high"></i></td>
+                <td><span class="day-info">{{ item.temps_high }}°C</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-thermometer-low"></i></td>
+                <td><span class="day-info">{{ item.temps_low }}°C</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-umbrella-fill"></i></td>
+                <td><span class="day-info">{{ item.precipitation_sum }} mm</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-sunrise"></i></td>
+                <td><span class="day-info">{{ item.sunrise }}</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-sunset"></i></td>
+                <td><span class="day-info">{{ item.sunset }}</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-moon-fill"></i></td>
+                <td><span class="day-info">{{ item.moonrise }}</span></td>
+              </tr>
+              <tr>
+                <td><i class="bi bi-moon"></i></td>
+                <td><span class="day-info">{{ item.moonset }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {% endfor %}
+      </div>
+
+      <h2>Prognoza godzinowa</h2>
+
+      <div class="chart-card">
+        <canvas id="forecastChart" height="100"></canvas>
+        <table id="hourtable">
+          <thead>
+            <tr>
+              <th>Godzina</th>
+              <th>Pogoda</th>
+              <th>Temperatura</th>
+              <th>Wilgotność</th>
+              <th>Szansa opadów</th>
+              <th>Opady</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in forecast %}
+            <tr>
+              <td>{{ item.time }}</td>
+              <td>
+                <div class="weather-icon-cell">
+                  <span
+                    class="weather-info"
+                    data-code="{{ item.weather_code }}"
+                  >
+                    {{ item.weather_code }}
+                  </span>
+                </div>
+              </td>
+              <td><b>{{ item.temp }}°C</b></td>
+              <td>{{ item.humidity }} %</td>
+              <td>{{ item.precipitation_prob }} %</td>
+              <td>{{ item.precipitation }} mm</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <script>
+      const weatherCodes = {
+          0: { text: "Bezchmurnie", icon: "bi-sun-fill" },
+          1: { text: "Przeważnie bezchmurnie", icon: "bi-cloud-sun-fill" },
+          2: { text: "Częściowe zachmurzenie", icon: "bi-cloud-fill" },
+          3: { text: "Pochmurno", icon: "bi-clouds-fill" },
+          10: { text: "Zamglenie", icon: "bi-cloud-fog-fill"},
+          18: { text: "Nawałnica", icon: "bi-cloud-rain-heavy-fill"},
+          45: { text: "Mgła", icon: "bi-cloud-fog-fill" },
+          48: { text: "Osadzająca się mgła", icon: "bi-cloud-fog2-fill" },
+          51: { text: "Lekka mżawka", icon: "bi-cloud-drizzle-fill" },
+          53: { text: "Umiarkowana mżawka", icon: "bi-cloud-drizzle-fill" },
+          55: { text: "Gęsta mżawka", icon: "bi-cloud-drizzle-fill" },
+          56: { text: "Słaba marznąca mżawka", icon: "bi-snow" },
+          57: { text: "Marznąca mżawka", icon: "bi-snow" },
+          61: { text: "Słaby deszcz", icon: "bi-cloud-rain-fill" },
+          63: { text: "Umiarkowany deszcz", icon: "bi-cloud-rain-fill" },
+          65: { text: "Ulewny deszcz", icon: "bi-cloud-rain-heavy-fill" },
+          66: { text: "Słaby marznący deszcz", icon: "bi-snow2" },
+          67: { text: "Marznący deszcz", icon: "bi-snow2" },
+          68: { text: "Słaby deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
+          69: { text: "Deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
+          71: { text: "Słabe opady śniegu", icon: "bi-cloud-snow-fill" },
+          73: { text: "Umiarkowany śnieg", icon: "bi-cloud-snow-fill" },
+          75: { text: "Intensywny śnieg", icon: "bi-cloud-snow-fill" },
+          80: { text: "Przelotny słaby deszcz", icon: "bi-cloud-rain-fill" },
+          81: { text: "Przelotny umiarkowany deszcz", icon: "bi-cloud-rain-fill" },
+          82: { text: "Przelotny gwałtowny deszcz", icon: "bi-cloud-rain-heavy-fill" },
+          83: { text: "Przelotny słaby deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
+          84: { text: "Przelotny deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
+          85: { text: "Przelotny słaby opad śniegu", icon: "bi-cloud-snow-fill" },
+          86: { text: "Przelotny opad śniegu", icon: "bi-cloud-snow-fill" },
+          95: { text: "Przelotna burza", icon: "bi-cloud-lightning-fill" },
+          96: { text: "Przelotna burza z gradem", icon: "bi-cloud-hail-fill" },
+          97: { text: "Silna burza", icon: "bi-cloud-lightning-fill" },
+          99: { text: "Silna burza z gradem", icon: "bi-cloud-hail-fill" },
+      };
+
+      function getWeatherInfo(code) {
+          return weatherCodes[code] || { text: "Kod: " + code, icon: "bi-question-circle" };
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+          document.querySelectorAll('.weather-info').forEach(el => {
+              const code = parseInt(el.getAttribute('data-code'));
+              const info = getWeatherInfo(code);
+              el.innerHTML = `<i class="bi ${info.icon}"></i> <span>${info.text}</span>`;
+          });
+
+          document.querySelectorAll('.weather-info-icononly').forEach(el => {
+              const code = parseInt(el.getAttribute('data-code'));
+              const info = getWeatherInfo(code);
+              el.innerHTML = `<i class="bi ${info.icon}"></i>`;
+          });
+
+          const currentTextEl = document.getElementById('current-weather-text');
+          const currentIconEl = document.getElementById('current-icon');
+          if (currentTextEl) {
+              const code = parseInt(currentTextEl.textContent);
+              const info = getWeatherInfo(code);
+              currentTextEl.textContent = info.text;
+              if (currentIconEl) {
+                  currentIconEl.className = `bi ${info.icon}`;
+              }
+          }
+      });
+
+      const computedStyle = getComputedStyle(document.documentElement);
+      const textColor = computedStyle.getPropertyValue('--text-muted').trim();
+      const gridColor = computedStyle.getPropertyValue('--grid').trim();
+      const tempColor = computedStyle.getPropertyValue('--val-temp').trim();
+      const rainColor = computedStyle.getPropertyValue('--val-rain').trim();
+
+      const hours = [{% for item in forecast %}"{{ item.time }}",{% endfor %}];
+      const temps = [{% for item in forecast %}{{ item.temp }},{% endfor %}];
+      const precip = [{% for item in forecast %}{{ item.precipitation }},{% endfor %}];
+
+      const ctx = document.getElementById('forecastChart').getContext('2d');
+      new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: hours,
+              datasets: [
+                  {
+                      label: 'Temperatura (°C)',
+                      data: temps,
+                      borderColor: tempColor,
+                      backgroundColor: tempColor + '22',
+                      fill: true,
+                      tension: 0.3,
+                      yAxisID: 'y'
+                  },
+                  {
+                      label: 'Opady (mm)',
+                      data: precip,
+                      type: 'bar',
+                      backgroundColor: rainColor + '88',
+                      yAxisID: 'y1'
+                  }
+              ]
+          },
+          options: {
+              responsive: true,
+              interaction: {
+                  mode: 'index',
+                  intersect: false,
+              },
+              plugins: {
+                  legend: {
+                      labels: { color: textColor }
+                  }
+              },
+              scales: {
+                  x: {
+                      ticks: { color: textColor },
+                      grid: { color: gridColor }
+                  },
+                  y: {
+                      type: 'linear',
+                      display: true,
+                      position: 'left',
+                      ticks: { color: textColor },
+                      grid: { color: gridColor },
+                      title: { display: true, text: 'Temperatura (°C)', color: textColor }
+                  },
+                  y1: {
+                      type: 'linear',
+                      display: true,
+                      position: 'right',
+                      min: 0,
+                      ticks: { color: textColor },
+                      grid: { drawOnChartArea: false },
+                      title: { display: true, text: 'Opady (mm)', color: textColor }
+                  }
+              }
+          }
+      });
+    </script>
+  </body>
+</html>
