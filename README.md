@@ -26,6 +26,7 @@
 - SCL - 5 (SCL)
 
 ### Content of project
+- static: icon.png (favicon placeholder for websites)
 - templates: index.html (weather station) & weather.html (weather forecast), both with auto dark mode
 - am2320_measure.py (read AM2320 sensor and write data to database every 15 seconds)
 - app.py (Flask app with getting data from database and creating endpoints for frontend & backend)
@@ -75,6 +76,7 @@ Based on API from [Open Meteo](https://open-meteo.com) the following data are fe
 - SCL - 5 (SCL)
 
 ### Zawartość projektu
+- static: icon.png (szablon favicon dla stron internetowych)
 - templates: index.html (stacja pogodowa) i weather.html (prognoza pogody), obie strony z automatycznym ciemnym motywem
 - am2320_measure.py (odczyt sensora AM2320 i zapis danych do bazy co 15 sekund)
 - app.py (aplikacja Flask, pobierająca informacje z bazy danych i tworząca endpoint-y dla frontend-u i backend-u)
