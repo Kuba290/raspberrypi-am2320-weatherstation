@@ -58,7 +58,7 @@ Based on API from [Open Meteo](https://open-meteo.com) the following data are fe
     - temperature max/min
     - precipitation
     - sunrise & sunset
-    - moonrise & moonset
+    - moonrise & moonset (with current moon phase)
 - hourly forecast (next 240h) - with temperature & precipitation combined chart:
     - datetime
     - weather
@@ -108,7 +108,7 @@ Na podstawie dostępnego API z [Open Meteo](https://open-meteo.com) pobierane s�
     - temperatura max/min
     - opady
     - wschód i zachód Słońca
-    - wschód i zachód Księżyca
+    - wschód i zachód Księżyca (z obecną fazą Księżyca)
 - dla prognozy godzinowej (240 godzin w przód) - również przedstawiono na wykresie temperaturę i opady co godzinę:
     - data i godzina
     - pogoda
