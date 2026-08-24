@@ -20,7 +20,7 @@ def get_weather():
     latitude = location.latitude
     longitude = location.longitude
 
-    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code&models=ecmwf_ifs&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=auto&forecast_hours=240&past_hours=0&daily=sunrise,sunset,weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,moonrise,moonset,moon_phase&forecast_days=7"
+    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,is_day&models=ecmwf_ifs&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=auto&forecast_hours=240&past_hours=0&daily=sunrise,sunset,weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,moonrise,moonset,moon_phase&forecast_days=7"
     data = requests.get(weather_url).json()
 
     hourly_forecast = []
@@ -30,6 +30,7 @@ def get_weather():
     precipitation_prob = data["hourly"]["precipitation_probability"]
     precipitation = data["hourly"]["precipitation"]
     weather_code = data["hourly"]["weather_code"]
+    is_day = data["hourly"]["is_day"]
 
     for i in range(len(times)):
         hourly_forecast.append({
@@ -38,7 +39,8 @@ def get_weather():
             "humidity": humidity[i],
             "precipitation_prob": precipitation_prob[i],
             "precipitation": precipitation[i],
-            "weather_code": weather_code[i]
+            "weather_code": weather_code[i],
+            "is_day": is_day[i]
         })
 
     daily_forecast = []

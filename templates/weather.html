@@ -11,6 +11,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       :root {
@@ -224,22 +228,22 @@
 
       <div class="cards-grid">
         <div class="card temp">
-          <h3><i class="bi bi-thermometer-half"></i> TEMPERATURA</h3>
+          <h3><i class="wi wi-thermometer"></i> TEMPERATURA</h3>
           <div class="value">{{ current.temp }}°C</div>
         </div>
         <div class="card hum">
-          <h3><i class="bi bi-droplet"></i> WILGOTNOŚĆ</h3>
+          <h3><i class="wi wi-humidity"></i> WILGOTNOŚĆ</h3>
           <div class="value">{{ current.humidity }} %</div>
         </div>
         <div class="card rain">
-          <h3><i class="bi bi-cloud-rain"></i> OPADY</h3>
+          <h3><i class="wi wi-umbrella"></i> OPADY</h3>
           <div class="value">{{ current.precipitation }} mm</div>
         </div>
         <div class="card weather">
-          <h3><i class="bi bi-cloud-sun"></i> POGODA</h3>
+          <h3><i class="wi wi-day-cloudy"></i> POGODA</h3>
           <div class="value">
             <i id="current-icon" class="bi"></i>
-            <span id="current-weather-text">{{ current.weather_code }}</span>
+            <span id="current-weather-text" isday="{{ 'true' if current.is_day else 'false' }}">{{ current.weather_code }}</span>
           </div>
         </div>
       </div>
@@ -258,34 +262,38 @@
             </thead>
             <tbody>
               <tr>
-                <td colspan="2"><span class="weather-info-icononly" data-code="{{ item.weather_code }}">{{ item.weather_code }}</span></td>
+                <td colspan="2"><span class="weather-info-icononly" data-code="{{ item.weather_code }}" isday="true">{{ item.weather_code }}</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-thermometer-high"></i></td>
+                <td><i class="wi wi-thermometer"></i></td>
                 <td><span class="day-info">{{ item.temps_high }}°C</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-thermometer-low"></i></td>
+                <td><i class="wi wi-thermometer-exterior"></i></td>
                 <td><span class="day-info">{{ item.temps_low }}°C</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-umbrella-fill"></i></td>
+                <td><i class="wi wi-umbrella"></i></td>
                 <td><span class="day-info">{{ item.precipitation_sum }} mm</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-sunrise"></i></td>
+                <td><i class="wi wi-sunrise"></i></td>
                 <td><span class="day-info">{{ item.sunrise }}</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-sunset"></i></td>
+                <td><i class="wi wi-sunset"></i></td>
                 <td><span class="day-info">{{ item.sunset }}</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-moon-fill"></i></td>
+                <td><i class="wi daily-moon-icon"></i></td>
+                <td><span class="day-info daily-moon-text" data-phase="{{ item.moon_phase }}"></span></td>
+              </tr>
+              <tr>
+                <td><i class="wi wi-moonrise"></i></td>
                 <td><span class="day-info">{{ item.moonrise }}</span></td>
               </tr>
               <tr>
-                <td><i class="bi bi-moon"></i></td>
+                <td><i class="wi wi-moonset"></i></td>
                 <td><span class="day-info">{{ item.moonset }}</span></td>
               </tr>
             </tbody>
@@ -317,6 +325,7 @@
                 <div class="weather-icon-cell">
                   <span
                     class="weather-info"
+                    isday="{{ 'true' if item.is_day else 'false' }}"
                     data-code="{{ item.weather_code }}"
                   >
                     {{ item.weather_code }}
@@ -337,77 +346,145 @@
 
     <script>
       const weatherCodes = {
-          0: { text: "Bezchmurnie", icon: "bi-sun-fill" },
-          1: { text: "Przeważnie bezchmurnie", icon: "bi-cloud-sun-fill" },
-          2: { text: "Częściowe zachmurzenie", icon: "bi-cloud-fill" },
-          3: { text: "Pochmurno", icon: "bi-clouds-fill" },
-          10: { text: "Zamglenie", icon: "bi-cloud-fog-fill"},
-          18: { text: "Nawałnica", icon: "bi-cloud-rain-heavy-fill"},
-          45: { text: "Mgła", icon: "bi-cloud-fog-fill" },
-          48: { text: "Osadzająca się mgła", icon: "bi-cloud-fog2-fill" },
-          51: { text: "Lekka mżawka", icon: "bi-cloud-drizzle-fill" },
-          53: { text: "Umiarkowana mżawka", icon: "bi-cloud-drizzle-fill" },
-          55: { text: "Gęsta mżawka", icon: "bi-cloud-drizzle-fill" },
-          56: { text: "Słaba marznąca mżawka", icon: "bi-snow" },
-          57: { text: "Marznąca mżawka", icon: "bi-snow" },
-          61: { text: "Słaby deszcz", icon: "bi-cloud-rain-fill" },
-          63: { text: "Umiarkowany deszcz", icon: "bi-cloud-rain-fill" },
-          65: { text: "Ulewny deszcz", icon: "bi-cloud-rain-heavy-fill" },
-          66: { text: "Słaby marznący deszcz", icon: "bi-snow2" },
-          67: { text: "Marznący deszcz", icon: "bi-snow2" },
-          68: { text: "Słaby deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
-          69: { text: "Deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
-          71: { text: "Słabe opady śniegu", icon: "bi-cloud-snow-fill" },
-          73: { text: "Umiarkowany śnieg", icon: "bi-cloud-snow-fill" },
-          75: { text: "Intensywny śnieg", icon: "bi-cloud-snow-fill" },
-          80: { text: "Przelotny słaby deszcz", icon: "bi-cloud-rain-fill" },
-          81: { text: "Przelotny umiarkowany deszcz", icon: "bi-cloud-rain-fill" },
-          82: { text: "Przelotny gwałtowny deszcz", icon: "bi-cloud-rain-heavy-fill" },
-          83: { text: "Przelotny słaby deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
-          84: { text: "Przelotny deszcz ze śniegiem", icon: "bi-cloud-sleet-fill" },
-          85: { text: "Przelotny słaby opad śniegu", icon: "bi-cloud-snow-fill" },
-          86: { text: "Przelotny opad śniegu", icon: "bi-cloud-snow-fill" },
-          95: { text: "Przelotna burza", icon: "bi-cloud-lightning-fill" },
-          96: { text: "Przelotna burza z gradem", icon: "bi-cloud-hail-fill" },
-          97: { text: "Silna burza", icon: "bi-cloud-lightning-fill" },
-          99: { text: "Silna burza z gradem", icon: "bi-cloud-hail-fill" },
+          0: { text: "Bezchmurnie", iconDay: "wi-day-sunny", iconNight: "wi-night-clear"},
+          1: { text: "Przeważnie bezchmurnie", iconDay: "wi-day-cloudy", iconNight: "wi-night-cloudy"},
+          2: { text: "Częściowe zachmurzenie", iconDay: "wi-cloud", iconNight: "wi-cloud"},
+          3: { text: "Pochmurno", iconDay: "wi-cloudy", iconNight: "wi-cloudy" },
+          10: { text: "Zamglenie", iconDay: "wi-day-haze", iconNight: "wi-night-fog"},
+          18: { text: "Nawałnica", iconDay: "wi-day-rain", iconNight: "wi-night-rain"},
+          45: { text: "Mgła", iconDay: "wi-fog", iconNight: "wi-fog"},
+          48: { text: "Osadzająca się mgła", iconDay: "wi-fog", iconNight: "wi-fog"},
+          51: { text: "Lekka mżawka", iconDay: "wi-sprinkle", iconNight: "wi-sprinkle"},
+          53: { text: "Umiarkowana mżawka", iconDay: "wi-sprinkle", iconNight: "wi-sprinkle"},
+          55: { text: "Gęsta mżawka", iconDay: "wi-sprinkle", iconNight: "wi-sprinkle"},
+          56: { text: "Słaba marznąca mżawka", iconDay: "wi-sprinkle", iconNight: "wi-sprinkle"},
+          57: { text: "Marznąca mżawka", iconDay: "wi-sprinkle", iconNight: "wi-sprinkle"},
+          61: { text: "Słaby deszcz", iconDay: "wi-showers", iconNight: "wi-showers"},
+          63: { text: "Umiarkowany deszcz", iconDay: "wi-showers", iconNight: "wi-showers"},
+          65: { text: "Ulewny deszcz", iconDay: "wi-rain", iconNight: "wi-rain"},
+          66: { text: "Słaby marznący deszcz", iconDay: "wi-showers", iconNight: "wi-showers"},
+          67: { text: "Marznący deszcz", iconDay: "wi-showers", iconNight: "wi-showers"},
+          68: { text: "Słaby deszcz ze śniegiem", iconDay: "wi-day-sleet", iconNight: "wi-night-sleet"},
+          69: { text: "Deszcz ze śniegiem", iconDay: "wi-sleet", iconNight: "wi-sleet"},
+          71: { text: "Słabe opady śniegu", iconDay: "wi-sleet", iconNight: "wi-sleet"},
+          73: { text: "Umiarkowany śnieg", iconDay: "wi-sleet", iconNight: "wi-sleet"},
+          75: { text: "Intensywny śnieg", iconDay: "wi-snow", iconNight: "wi-snow"},
+          80: { text: "Przelotny słaby deszcz", iconDay: "wi-day-showers", iconNight: "wi-night-showers"},
+          81: { text: "Przelotny umiarkowany deszcz", iconDay: "wi-day-showers", iconNight: "wi-night-showers"},
+          82: { text: "Przelotny gwałtowny deszcz", iconDay: "wi-day-rain", iconNight: "wi-night-rain"},
+          83: { text: "Przelotny słaby deszcz ze śniegiem", iconDay: "wi-day-sleet", iconNight: "wi-night-sleet"},
+          84: { text: "Przelotny deszcz ze śniegiem", iconDay: "wi-day-sleet", iconNight: "wi-night-sleet"},
+          85: { text: "Przelotny słaby opad śniegu", iconDay: "wi-day-snow", iconNight: "wi-night-snow"},
+          86: { text: "Przelotny opad śniegu", iconDay: "wi-day-snow", iconNight: "wi-night-snow"},
+          95: { text: "Przelotna burza", iconDay: "wi-day-storm-showers", iconNight: "wi-night-storm-showers"},
+          96: { text: "Przelotna burza z gradem", iconDay: "wi-day-storm-showers", iconNight: "wi-night-storm-showers"},
+          97: { text: "Silna burza", iconDay: "wi-thunderstorm", iconNight: "wi-thunderstorm"},
+          99: { text: "Silna burza z gradem", iconDay: "wi-thunderstorm", iconNight: "wi-thunderstorm"},
       };
 
-      function getWeatherInfo(code) {
-          return weatherCodes[code] || { text: "Kod: " + code, icon: "bi-question-circle" };
+      function getWeatherInfo(code, isDay = true) {
+        const entry = weatherCodes[code];
+        if (!entry) {
+            return { text: "Kod: " + code, icon: "bi-question-circle" };
+        }
+        return {
+            text: entry.text,
+            icon: isDay ? entry.iconDay : entry.iconNight
+        };
       }
 
+      const moon_icons = [
+          "wi-moon-new",
+          "wi-moon-waxing-crescent-1", "wi-moon-waxing-crescent-2", "wi-moon-waxing-crescent-3",
+          "wi-moon-waxing-crescent-4", "wi-moon-waxing-crescent-5", "wi-moon-waxing-crescent-6",
+          "wi-moon-first-quarter",
+          "wi-moon-waxing-gibbous-1", "wi-moon-waxing-gibbous-2", "wi-moon-waxing-gibbous-3",
+          "wi-moon-waxing-gibbous-4", "wi-moon-waxing-gibbous-5", "wi-moon-waxing-gibbous-6",
+          "wi-moon-full",
+          "wi-moon-waning-gibbous-1", "wi-moon-waning-gibbous-2", "wi-moon-waning-gibbous-3",
+          "wi-moon-waning-gibbous-4", "wi-moon-waning-gibbous-5", "wi-moon-waning-gibbous-6",
+          "wi-moon-third-quarter",
+          "wi-moon-waning-crescent-1", "wi-moon-waning-crescent-2", "wi-moon-waning-crescent-3",
+          "wi-moon-waning-crescent-4", "wi-moon-waning-crescent-5", "wi-moon-waning-crescent-6"
+      ];
+
+      function getMoonDetails(phaseVal) {
+          if (phaseVal === null || phaseVal === undefined) {
+              return {name: "Brak danych", icon: "wi-moon-new" };
+          }
+
+          const index = Math.round(phaseVal * 28) % 28;
+          const iconClass = moon_icons[index];
+
+          let name = "";
+          if (phaseVal <= 0.02 || phaseVal >= 0.98) {
+              name = "Nów";
+          } else if (phaseVal >= 0.23 && phaseVal <= 0.27) {
+              name = "I kwadra";
+          } else if (phaseVal >= 0.48 && phaseVal <= 0.52) {
+              name = "Pełnia";
+          } else if (phaseVal >= 0.73 && phaseVal <= 0.77) {
+              name = "III kwadra";
+          } else if (phaseVal > 0.02 && phaseVal < 0.48) {
+              name = "Przybywający";
+          } else {
+              name = "Ubywający";
+          }
+
+          return {name, icon: iconClass};
+      }
+
+      // podmiana kodów na teksty i ikony
       document.addEventListener("DOMContentLoaded", function() {
           document.querySelectorAll('.weather-info').forEach(el => {
               const code = parseInt(el.getAttribute('data-code'));
-              const info = getWeatherInfo(code);
-              el.innerHTML = `<i class="bi ${info.icon}"></i> <span>${info.text}</span>`;
+              const isDay = el.getAttribute('isday') !== 'false';
+              const info = getWeatherInfo(code, isDay);
+              el.innerHTML = `<i class="wi ${info.icon}"></i> <span>${info.text}</span>`;
           });
 
           document.querySelectorAll('.weather-info-icononly').forEach(el => {
               const code = parseInt(el.getAttribute('data-code'));
-              const info = getWeatherInfo(code);
-              el.innerHTML = `<i class="bi ${info.icon}"></i>`;
+              const isDay = el.getAttribute('isDay') !== 'false';
+              const info = getWeatherInfo(code, isDay);
+              el.innerHTML = `<i class="wi ${info.icon}"></i>`;
           });
 
           const currentTextEl = document.getElementById('current-weather-text');
           const currentIconEl = document.getElementById('current-icon');
           if (currentTextEl) {
               const code = parseInt(currentTextEl.textContent);
-              const info = getWeatherInfo(code);
+              const isDay = currentTextEl.getAttribute('isDay') !== 'false';
+              const info = getWeatherInfo(code, isDay);
               currentTextEl.textContent = info.text;
               if (currentIconEl) {
-                  currentIconEl.className = `bi ${info.icon}`;
+                  currentIconEl.className = `wi ${info.icon}`;
               }
           }
+          document.querySelectorAll('.daily-moon-text').forEach(moonTextEl => {
+            const phaseVal = parseFloat(moonTextEl.getAttribute('data-phase'));
+            const info = getMoonDetails(phaseVal);
+            
+            moonTextEl.textContent = info.name;
+            
+            const row = moonTextEl.closest('tr');
+            if (row) {
+                const moonIconEl = row.querySelector('.daily-moon-icon');
+                if (moonIconEl) {
+                    moonIconEl.className = `wi ${info.icon}`;
+                }
+            }
+        });
       });
 
+      // odczytanie zmiennych kolorów z CSS
       const computedStyle = getComputedStyle(document.documentElement);
       const textColor = computedStyle.getPropertyValue('--text-muted').trim();
       const gridColor = computedStyle.getPropertyValue('--grid').trim();
       const tempColor = computedStyle.getPropertyValue('--val-temp').trim();
       const rainColor = computedStyle.getPropertyValue('--val-rain').trim();
 
+      // generowanie wykresu
       const hours = [{% for item in forecast %}"{{ item.time }}",{% endfor %}];
       const temps = [{% for item in forecast %}{{ item.temp }},{% endfor %}];
       const precip = [{% for item in forecast %}{{ item.precipitation }},{% endfor %}];
