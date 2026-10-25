@@ -161,6 +161,10 @@
         gap: 8px;
       }
 
+      .card.airquality .value {
+        color: var(--text-h1);
+      }
+
       .chart-card, .days-grid {
         background: var(--bg-surface);
         padding: 20px;
@@ -246,6 +250,12 @@
             <span id="current-weather-text" isday="{{ 'true' if current.is_day else 'false' }}">{{ current.weather_code }}</span>
           </div>
         </div>
+        {% if air_data %}
+        <div class="card airquality">
+          <h3><i class="bi bi-fan"></i> JAKOŚĆ POWIETRZA</h3>
+          <div class="value">{{air_data.category}}</div>
+        </div>
+        {% endif %}
       </div>
 
       <h2>Prognoza dzienna</h2>

@@ -78,6 +78,17 @@ def get_weather():
 
     return current_weather, hourly_forecast, daily_forecast
 
+def get_air_quality():
+    if location.station_id is not None:
+        index_url = (f"https://api.gios.gov.pl/pjp-api/v1/rest/aqindex/getIndex/{location.station_id}")
+        air_data = {"category": "Brak danych"}
+
+        category = requests.get(index_url).json().get("AqIndex").get("Nazwa kategorii indeksu", "Brak danych")
+        air_data["category"] = category
+        
+        return air_data
+    else:
+        return None
 
 @app.route('/')
 def index():
@@ -86,7 +97,8 @@ def index():
 @app.route('/weather')
 def weather():
     current, forecast, daily = get_weather()
-    return render_template('weather.html', current = current, forecast = forecast, daily = daily)
+    air_data = get_air_quality()
+    return render_template('weather.html', current = current, forecast = forecast, daily = daily, air_data = air_data)
 
 @app.route('/api/data')
 def api_data():
