@@ -2,8 +2,26 @@ from flask import Flask, render_template, jsonify, request
 import sqlite3
 import requests
 import location
+import time
+from functools import wraps
 
 app = Flask(__name__)
+
+session = requests.Session()
+
+def timed_cache(seconds=600):
+    def decorator(func):
+        cache = {'value': None, 'last_update': 0}
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            now = time.time()
+            if cache['value'] is not None and (now - cache['last_update']) < seconds:
+                return cache['value']
+            cache['value'] = func(*args, **kwargs)
+            cache['last_update'] = now
+            return cache['value']
+        return wrapper
+    return decorator
 
 def get_history(limit=50):
     conn = sqlite3.connect('sensor_data.db')
@@ -16,12 +34,13 @@ def get_history(limit=50):
     conn.close()
     return data[::-1]
 
+@timed_cache(seconds=600)
 def get_weather():
     latitude = location.latitude
     longitude = location.longitude
 
     weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,is_day&models=ecmwf_ifs&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=auto&forecast_hours=240&past_hours=0&daily=sunrise,sunset,weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,moonrise,moonset,moon_phase&forecast_days=7"
-    data = requests.get(weather_url).json()
+    data = session.get(weather_url).json()
 
     hourly_forecast = []
     times = data["hourly"]["time"]
@@ -78,12 +97,13 @@ def get_weather():
 
     return current_weather, hourly_forecast, daily_forecast
 
+@timed_cache(seconds=600)
 def get_air_quality():
     if location.station_id is not None:
         index_url = (f"https://api.gios.gov.pl/pjp-api/v1/rest/aqindex/getIndex/{location.station_id}")
         air_data = {"category": "Brak danych"}
 
-        category = requests.get(index_url).json().get("AqIndex").get("Nazwa kategorii indeksu", "Brak danych")
+        category = session.get(index_url).json().get("AqIndex", {}).get("Nazwa kategorii indeksu", "Brak danych")
         air_data["category"] = category
         
         return air_data
