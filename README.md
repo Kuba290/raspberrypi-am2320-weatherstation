@@ -2,6 +2,7 @@
 
 # Contents
 - [raspberrypi-am2320-weatherstation](#raspberrypi-am2320-weatherstation)
+- [Contents](#contents)
   - [Raspberry Pi 3B+ \& AM2320 weather station (ENG version)](#raspberry-pi-3b--am2320-weather-station-eng-version)
     - [Connections (AM2320 - Raspberry Pi 3B+)](#connections-am2320---raspberry-pi-3b)
     - [Content of project](#content-of-project)
@@ -30,8 +31,7 @@
 - templates: index.html (weather station) & weather.html (weather forecast), both with auto dark mode
 - am2320_measure.py (read AM2320 sensor and write data to database every 15 seconds)
 - app.py (Flask app with getting data from database and creating endpoints for frontend & backend)
-- db_start.py (database creator)
-- location.py (coordinates for fetching weather forecast)
+- location.py (coordinates for fetching weather forecast and air quality from [GIOŚ](https://powietrze.gios.gov.pl/pjp/content/api))
 
 ### Weather station
 - measure time - last measure time from sensor, which is currently visible
@@ -43,7 +43,6 @@
   - last 3 hours
   - last 12 hours
   - last 24 hours
-  - all history - API limit (last 10k database rows)
 
 ### Weather forecast
 Based on API from [Open Meteo](https://open-meteo.com) the following data are fetched for:
@@ -52,7 +51,8 @@ Based on API from [Open Meteo](https://open-meteo.com) the following data are fe
     - humidity
     - precipitation
     - current weather (conversion from weather codes to Polish names weather conditions, based on [WMO CODE TABLE 4677](https://www.nodc.noaa.gov/archive/arc0021/0002199/1.1/data/0-data/HTML/WMO-CODE/WMO4677.HTM)
-- daily forecast (7 days):
+    - air quality (if station_id specified)
+- daily forecast (10 days):
     - date
     - weather
     - temperature max/min
@@ -80,8 +80,7 @@ Based on API from [Open Meteo](https://open-meteo.com) the following data are fe
 - templates: index.html (stacja pogodowa) i weather.html (prognoza pogody), obie strony z automatycznym ciemnym motywem
 - am2320_measure.py (odczyt sensora AM2320 i zapis danych do bazy co 15 sekund)
 - app.py (aplikacja Flask, pobierająca informacje z bazy danych i tworząca endpoint-y dla frontend-u i backend-u)
-- db_start.py (kreator bazy danych)
-- location.py (koordynaty lokalizacji do pobierania prognozy pogody)
+- location.py (koordynaty lokalizacji do pobierania prognozy pogody i jakości powietrza udostępnianej przez [GIOŚ](https://powietrze.gios.gov.pl/pjp/content/api))
 
 ### Stacja pogodowa
 - Czas pomiaru - kiedy został odnotowany ostatni pomiar, który jest obecnie widoczny
@@ -93,7 +92,6 @@ Based on API from [Open Meteo](https://open-meteo.com) the following data are fe
   - ostatnich 3 godzin
   - ostatnich 12 godzin
   - ostatnich 24 godzin
-  - całej historii - limit API (ustawiony na ostatnie 10 tysięcy rekordów z bazy danych)
  
 ### Prognoza pogody
 Na podstawie dostępnego API z [Open Meteo](https://open-meteo.com) pobierane są następujące wartości:
@@ -102,7 +100,8 @@ Na podstawie dostępnego API z [Open Meteo](https://open-meteo.com) pobierane s�
     - wilgotność
     - opady
     - bieżąca pogoda (konwersja kodów pogody na polskie nazwy np. "Pochmurno", na podstawie tabeli [WMO CODE TABLE 4677](https://www.nodc.noaa.gov/archive/arc0021/0002199/1.1/data/0-data/HTML/WMO-CODE/WMO4677.HTM)
-- dla prognozy dziennej (7 - dniowej):
+    - jakość powietrza (jeżeli podano nr stacji pomiarowej station_id)
+- dla prognozy dziennej (10 - dniowej):
     - data
     - pogoda
     - temperatura max/min

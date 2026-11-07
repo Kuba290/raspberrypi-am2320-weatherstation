@@ -9,6 +9,13 @@ app = Flask(__name__)
 
 session = requests.Session()
 
+def db_init():
+    conn = sqlite3.connect('sensor_data.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS measurements (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, temperature REAL, humidity REAL)''')
+    conn.commit()
+    conn.close()
+
 def timed_cache(seconds=600):
     def decorator(func):
         cache = {'value': None, 'last_update': 0}
@@ -39,7 +46,7 @@ def get_weather():
     latitude = location.latitude
     longitude = location.longitude
 
-    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,is_day&models=ecmwf_ifs&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=auto&forecast_hours=240&past_hours=0&daily=sunrise,sunset,weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,moonrise,moonset,moon_phase&forecast_days=7"
+    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,is_day&models=ecmwf_ifs&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=auto&forecast_hours=240&past_hours=0&daily=sunrise,sunset,weather_code,temperature_2m_min,temperature_2m_max,precipitation_sum,moonrise,moonset,moon_phase&forecast_days=10"
     data = session.get(weather_url).json()
 
     hourly_forecast = []
@@ -149,4 +156,5 @@ def api_data():
     })
 
 if __name__ == '__main__':
+    db_init()
     app.run(host='0.0.0.0', port=5000)

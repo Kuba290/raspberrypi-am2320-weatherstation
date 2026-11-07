@@ -2,6 +2,7 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Stacja pogodowa Raspberry Pi</title>
     <link
       rel="shortcut icon"
@@ -45,37 +46,9 @@
         }
       }
 
-      a {
-        text-decoration: none;
-        color: var(--text-h1);
-      }
-
-      .links-grid {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 20px;
-      }
-
-      .link {
-        flex: 1;
-        background: var(--bg-surface);
-        padding: 5px;
-        border-radius: 8px;
-        text-align: center;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-      }
-
-      .link h2 {
-        margin: 0;
-        color: var(--text-muted);
-        font-size: 1.5em;
-        text-decoration: none;
-      }
-
       body {
         font-family: Arial, sans-serif;
-        margin: 20px;
+        margin: 12px;
         background-color: var(--bg-body);
         color: var(--text-h1);
         transition:
@@ -84,19 +57,55 @@
       }
 
       .container {
+        max-width: 1200px;
         margin: 0 auto;
+      }
+
+      a {
+        text-decoration: none;
+        color: var(--text-h1);
+      }
+
+      .links-grid {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .link {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--bg-surface);
+        color: var(--text-muted);
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 1.1em;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+      }
+
+      .link.active {
+        background: var(--bg-body);
+        border-color: transparent;
       }
 
       .cards-grid {
         display: flex;
-        gap: 20px;
-        margin-bottom: 20px;
+        gap: 12px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
       }
 
       .card {
         flex: 1;
+        min-width: 150px;
         background: var(--bg-surface);
-        padding: 20px;
+        padding: 15px;
         border-radius: 8px;
         text-align: center;
         box-shadow: var(--shadow);
@@ -106,17 +115,18 @@
       .card h3 {
         margin: 0;
         color: var(--text-muted);
-        font-size: 0.9em;
+        font-size: 0.8em;
       }
 
       .card .value {
-        font-size: 2.2em;
+        font-size: 1.6em;
         font-weight: bold;
-        margin-top: 10px;
+        margin-top: 6px;
       }
 
       .card.time .value {
         color: var(--text-muted);
+        font-size: 1.2em;
       }
 
       .card.temp.dry .value {
@@ -133,55 +143,63 @@
 
       .controls {
         background: var(--bg-surface);
-        padding: 15px;
+        padding: 12px 15px;
         border-radius: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         box-shadow: var(--shadow);
         border: 1px solid var(--border-color);
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
       .chart-card {
         background: var(--bg-surface);
-        padding: 20px;
+        padding: 15px;
         border-radius: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         box-shadow: var(--shadow);
         border: 1px solid var(--border-color);
+      }
+
+      .chart-container-wrapper {
+        position: relative;
+        width: 100%;
+        height: 350px;
       }
 
       h1 {
         text-align: center;
         color: var(--text-h1);
+        font-size: 1.5em;
+        margin-bottom: 15px;
       }
 
       h2 {
         margin-top: 0;
         color: var(--text-h2);
         text-align: center;
+        font-size: 1.2em;
       }
 
       select {
-        padding: 5px;
-        font-size: 1em;
+        padding: 6px;
+        font-size: 0.95em;
         background-color: var(--bg-surface);
         color: var(--text-h1);
         border: 1px solid var(--text-muted);
         border-radius: 4px;
+        max-width: 100%;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="links-grid">
-        <div class="link">
-          <h2><a href="{{ url_for('index') }}">Stacja pogodowa</a></h2>
-        </div>
-        <div class="link">
-          <h2><a href="{{ url_for('weather') }}">Prognoza pogody</a></h2>
-        </div>
+        <a href="{{ url_for('index') }}" class="link active">Stacja pogodowa</a>
+        <a href="{{ url_for('weather') }}" class="link">Prognoza pogody</a>
       </div>
 
       <h1>Stacja pogodowa</h1>
@@ -196,6 +214,7 @@
           <h3>AKTUALNA TEMPERATURA</h3>
           <div class="value" id="currentTemp">-- °C</div>
         </div>
+
         <div class="card temp hi">
           <h3>HEAT INDEX</h3>
           <div class="value" id="currentHI">-- °C</div>
@@ -216,13 +235,14 @@
           <option value="3">ostatnich 3 godzin</option>
           <option value="12">ostatnich 12 godzin</option>
           <option value="24">ostatnich 24 godzin</option>
-          <option value="all">całej historii</option>
         </select>
       </div>
 
       <div class="chart-card">
         <h2>Historia temperatury i wilgotności</h2>
-        <canvas id="combinedChart"></canvas>
+        <div class="chart-container-wrapper">
+          <canvas id="combinedChart"></canvas>
+        </div>
       </div>
     </div>
 
@@ -237,6 +257,7 @@
         type: "time",
         ticks: {
           color: getCSSVar("--text-h1"),
+          maxTicksLimit: 6,
         },
         time: {
           parser: "yyyy-MM-dd HH:mm:ss",
@@ -260,7 +281,6 @@
       };
 
       function getStartTime(hours) {
-        if (hours === "all") return null;
         const now = new Date();
         now.setHours(now.getHours() - parseInt(hours));
         return now.getTime();
@@ -268,7 +288,7 @@
 
       async function fetchApiData() {
         try {
-          const response = await fetch(`/api/data?limit=10000`);
+          const response = await fetch(`/api/data?limit=6000`);
           return await response.json();
         } catch (error) {
           console.error("Błąd pobierania danych:", error);
@@ -321,6 +341,8 @@
             ],
           },
           options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: {
                 labels: {
@@ -328,7 +350,6 @@
                 },
               },
             },
-            responsive: true,
             interaction: {
               mode: "index",
               intersect: false,
@@ -428,8 +449,8 @@
             `${current.temp} °C`;
           document.getElementById("currentHum").innerText = `${current.hum} %`;
           document.getElementById("currentTime").innerText = `${current.time}`;
-          document.getElementById("currentHI").innerText =
-            `${heatIndex(current)} °C`;
+          if (heatIndex(current)) document.getElementById("currentHI").innerText = `${heatIndex(current)} °C`;
+          else document.getElementById("currentHI").innerText = `-- °C`;
         }
       }
 
