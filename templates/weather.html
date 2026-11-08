@@ -549,16 +549,17 @@
               labels: hours,
               datasets: [
                   {
-                      label: 'Temperatura (°C)',
+                      label: 'temperatura (°C)',
                       data: temps,
                       borderColor: tempColor,
                       backgroundColor: tempColor + '22',
                       fill: true,
                       tension: 0.3,
-                      yAxisID: 'y'
+                      yAxisID: 'y',
+                      pointRadius: 0,
                   },
                   {
-                      label: 'Opady (mm)',
+                      label: 'opady (mm)',
                       data: precip,
                       type: 'bar',
                       backgroundColor: rainColor + '88',
